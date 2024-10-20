@@ -1,2 +1,2 @@
-# code-puddles
-Some (questionably) amusing pieces of code 😉
+# Code Puddles
+Some (questionably) amusing, (relatively) small pieces of code 😉
