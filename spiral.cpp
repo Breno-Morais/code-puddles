@@ -23,42 +23,69 @@
 #define Matrix(Type) std::vector<std::vector<Type>>
 #define get_matrix(Type, m, n, defaultValue) Matrix(Type)(m, std::vector<Type>(n, defaultValue))
 
+enum Direction {
+  HORIZONTAL,
+  VERTICAL,
+  REVERSE_HORIZONTAL,
+  REVERSE_VERTICAL,
+};
+
 int get_next(){
   static int next = 0;
   return next++;
 }
 
-void upper_right_corner(Matrix(int) &A, int lc, int lr, int uc, int ur, int (*f) ());
+void fill(Matrix(int) &A, int &i, int &j, int end, Direction d, int (*f) ()) {  
+  switch(d) {
+    case HORIZONTAL:
+      for(; j < end; j++) {
+        A[i][j] = f();
+      };
+      break;
 
-void lower_left_corner(Matrix(int) &A, int lc, int lr, int uc, int ur, int (*f) ()){
-  // std::cout << lc << ' ' << uc << ' ' << lr << ' ' << ur << '\n';
-  int i = ur - 1;
-  int j = uc - 1;
-  if (i > lr && j > lc){
-    for (; j > lc; j--)
-      A[i][j] = f();
-    for (i--, j = lc + 1; i > lr; i--)
-      A[i][j] = f();
-    upper_right_corner(A, lc + 1, lr, uc, ur - 1, f);
+    case VERTICAL:
+      for(; i < end; i++) {
+        A[i][j] = f();
+      };
+      break;
+
+    case REVERSE_HORIZONTAL:
+      for(; j > end; j--) {
+        A[i][j] = f();
+      };
+      break;
+
+    case REVERSE_VERTICAL:
+      for(; i > end; i--) {
+        A[i][j] = f();
+      };
+      break;
   }
+  
 }
 
-void upper_right_corner(Matrix(int) &A, int lc, int lr, int uc, int ur, int (*f) ()){
-  // std::cout << lc << ' ' << uc << ' ' << lr << ' ' << ur << '\n';
-  int i = lr + 1;
-  int j = lc + 1;
-  if (i < ur && j < uc){
+void spiral(Matrix(int) &A, int sr, int sc, int br, int bc, int (*f) ()) {
+  int i = sr + 1;
+  int j = sc + 1;
+  int pc = bc - sc - 2;
+  int pr = br - sr - 2;
 
-    // v 1x1 matrix tactfully solved
+  if(pc > 0 || pr > 0) {
+    if(i<br && j<(bc - 1))
+      fill(A, i, j, j+pc, HORIZONTAL, f);
+
+    if(i<(br-1) && j<bc)
+      fill(A, i, j, i+pr, VERTICAL, f);
+
+    if(i<br && (sc+1)<j<bc)
+      fill(A, i, j, j-pc, REVERSE_HORIZONTAL, f);
+
+    if((sr+1)<i<(br-1) && sc<j<bc)
+      fill(A, i, j, i-pr, REVERSE_VERTICAL, f);
+
+    spiral(A, sr + 1, sc + 1, br - 1, bc - 1, f);
+  } else if( pc == 0 && pr == 0) {
     A[i][j] = f();
-    j++;
-    // ^ 1x1 matrix tactfully solved
-
-    for (; j < uc; j++)
-      A[i][j] = f();
-    for (i++, j = uc - 1; i < ur; i++)
-      A[i][j] = f();
-    lower_left_corner(A, lc, lr + 1, uc - 1, ur, f);
   }
 }
 
@@ -66,7 +93,7 @@ void upper_right_corner(Matrix(int) &A, int lc, int lr, int uc, int ur, int (*f)
  * Fills a matrix with a sequence by applying a function (get_next) traversing the matrix in spiral order from the outside in
  */
 void spiral_fill(Matrix(int) &A, int m, int n){
-  upper_right_corner(A, -1, -1, n, m, get_next);
+  spiral(A, -1, -1, m, n, get_next);
 }
 
 void print_matrix(Matrix(int) &M, int m, int n){
